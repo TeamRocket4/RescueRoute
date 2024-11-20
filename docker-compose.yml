@@ -1,0 +1,23 @@
+services:
+
+
+  db2:
+    container_name: ambulance_db
+    image: mysql:8.3
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: portf
+      MYSQL_USER: ussr
+      MYSQL_PASSWORD: 123
+    volumes:
+      - vol:/var/lib/mysql
+    networks:
+      - net1
+    ports:
+      - 3306:3306
+
+volumes:
+  vol:
+
+networks:
+  net1:
