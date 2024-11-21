@@ -1,5 +1,19 @@
 services:
-
+  springboot:
+    build:
+      context: ./Ambulance_Spring
+      dockerfile: Dockerfile
+    container_name: springboot_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db2:3306/portf
+      SPRING_DATASOURCE_USERNAME: ussr
+      SPRING_DATASOURCE_PASSWORD: 123
+    ports:
+      - "8080:8080"
+    networks:
+      - net1
+    depends_on:
+      - db2
 
   db2:
     container_name: ambulance_db
@@ -14,7 +28,7 @@ services:
     networks:
       - net1
     ports:
-      - 3306:3306
+      - "3306:3306"
 
 volumes:
   vol:
