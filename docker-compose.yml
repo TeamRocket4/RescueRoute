@@ -11,7 +11,7 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - net1
+      - dev_network
     depends_on:
       - db2
 
@@ -26,47 +26,13 @@ services:
     volumes:
       - vol:/var/lib/mysql
     networks:
-      - net1
+      - dev_network
     ports:
       - "3306:3306"
 
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    user: root
-    ports:
-      - "8090:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - net1
-    depends_on:
-      - springboot
-      - db2
-
-  sonarqube:
-    image: sonarqube:community
-    container_name: sonarqube
-    ports:
-      - "9000:9000"
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
-    networks:
-      - net1
-    depends_on:
-      - jenkins
-
 volumes:
   vol:
-  jenkins_home:
-  sonarqube_data:
-  sonarqube_extensions:
-  sonarqube_logs:
 
 networks:
-  net1:
+  dev_network:
     driver: bridge
