@@ -1,3 +1,4 @@
+version: '3'
 services:
   springboot:
     build:
@@ -5,33 +6,38 @@ services:
       dockerfile: Dockerfile
     container_name: springboot_service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://ambulance_db:3306/portf
+      SPRING_DATASOURCE_URL: jdbc:mysql://ambulance_db:3306/portf?allowPublicKeyRetrieval=true&useSSL=false
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_PASSWORD: "123"
     ports:
       - "8080:8080"
     networks:
-      - devops_network
+      - app_network
     depends_on:
-      - ambulance_db
+      ambulance_db:
+        condition: service_healthy
 
   ambulance_db:
     container_name: ambulance_db
     image: mysql:8.3
     environment:
-      MYSQL_ROOT_PASSWORD: ""
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "123"
       MYSQL_DATABASE: portf
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - devops_network
+      - app_network
     ports:
       - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:
 
 networks:
-  devops_network:
-    external: true
+  app_network:
+    driver: bridge
