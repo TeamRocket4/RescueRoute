@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="welcome_bac">
+        <item name="android:textSize">40.33sp</item>
+        <item name="android:textColor">#EFEFEF</item>
+    </style>
+</resources>

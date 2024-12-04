@@ -1,5 +1,7 @@
 package com.example.ambulance_spring.entities;
 
+import com.example.ambulance_spring.entities.enums.Role;
+import com.example.ambulance_spring.entities.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +30,12 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Temporal(TemporalType.DATE)
     private Date birthDate;
