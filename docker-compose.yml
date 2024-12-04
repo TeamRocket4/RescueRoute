@@ -1,23 +1,37 @@
 services:
+  springboot:
+    build:
+      context: ./Ambulance_Spring
+      dockerfile: Dockerfile
+    container_name: springboot_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://ambulance_db:3306/portf
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ""
+    ports:
+      - "8080:8080"
+    networks:
+      - devops_network
+    depends_on:
+      - ambulance_db
 
-
-  db2:
+  ambulance_db:
     container_name: ambulance_db
     image: mysql:8.3
     environment:
-      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: portf
-      MYSQL_USER: ussr
-      MYSQL_PASSWORD: 123
     volumes:
-      - vol:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
-      - net1
+      - devops_network
     ports:
-      - 3306:3306
+      - "3306:3306"
 
 volumes:
-  vol:
+  mysql_data:
 
 networks:
-  net1:
+  devops_network:
+    external: true
