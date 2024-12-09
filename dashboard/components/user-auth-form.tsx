@@ -27,7 +27,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
       "password": password
     }).then((res) => {
       console.log(res.data)
-      //router.push("/dashboard/users")
+      router.push("/dashboard/users")
     }).catch((err) => {
       setIsLoading(false)
       console.log(err.message)

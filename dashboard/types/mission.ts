@@ -5,15 +5,17 @@ export enum MissionStatus {
   PENDING = "PENDING",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED"
+  CANCELLED = "CANCELLED",
+  ASSIGNED = "ASSIGNED"
 }
 
 export interface Mission {
   id: number;
   status: MissionStatus;
-  address: string;
-  driver: User;
-  dispatcher: User;
-  hospital: Hospital;
+  latitude: number;
+  longitude: number;
+  driver: number;
+  dispatcher: number;
+  hospital: number;
 }
 

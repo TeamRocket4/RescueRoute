@@ -2,6 +2,7 @@ package com.example.ambulance_spring.entities;
 
 import com.example.ambulance_spring.entities.enums.Role;
 import com.example.ambulance_spring.entities.enums.Status;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)

@@ -1,4 +1,4 @@
-package com.example.ambulance_spring.entities.enums;
+package com.ambulance.entities;
 
 public enum MissionStatus {
     PENDING,       // Mission is created but not yet assigned.

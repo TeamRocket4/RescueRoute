@@ -16,6 +16,7 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
 import apiClient from "@/lib/api-client"
+import axios from "axios"
 
 // Mock data for demonstration
 const mockDrivers: User[] = [
@@ -35,16 +36,19 @@ const mockHospitals: Hospital[] = [
 export default function MapPage() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+
   const [newMission, setNewMission] = useState<Partial<Mission>>({
-    status: MissionStatus.PENDING,
-    address: "",
+    status: MissionStatus.ASSIGNED
   })
+
   const [hospitals, setHospitals] = useState<Hospital[]>([])
 
 
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [position, setPosition] = useState<Partial<Position>>({});
+
+  const [MissionPosition, setMissionPossition] = useState(null);
 
   useEffect(() => {
     // Connect to the WebSocket server
@@ -82,7 +86,7 @@ export default function MapPage() {
   const fetchHospitals = async () => {
     try {
       const response = await apiClient.get('/hospitals')
-      setHospitals(response.data._embedded.hospitals	)
+      setHospitals(response.data._embedded.hospitals)
     } catch (error) {
       console.error('Error fetching hospitals:', error)
     }
@@ -117,7 +121,16 @@ export default function MapPage() {
   }
 
   const handleCreateMission = () => {
+    newMission.dispatcher = 1;
+    newMission.latitude = MissionPosition.lat;
+    newMission.longitude = MissionPosition.long;
+
     console.log("Creating mission:", newMission)
+
+    if (stompClient && stompClient.connected) {
+      stompClient.publish({ destination: '/app/position/1', body: JSON.stringify(newMission) });
+    }
+    
     setIsDialogOpen(false)
     // Here you would typically send this data to your backend
   }
@@ -132,6 +145,13 @@ export default function MapPage() {
     lng: -8.0902538, // Longitude for San Francisco (example)
   };
 
+  const updateMissionPosition = (ev) => {
+    setMissionPossition({
+      lat : ev.latLng.lat(),
+      long : ev.latLng.lng()
+    })
+  }
+
   return (
     <div className="space-y-6">
       <h3 className="text-2xl font-medium text-[#F95738]">Map</h3>
@@ -141,13 +161,21 @@ export default function MapPage() {
         <LoadScript googleMapsApiKey="">
           <GoogleMap
             mapContainerStyle={containerStyle}
-            center={center}
+            center={MissionPosition || center}
             zoom={8}
+            onClick={(ev) => {updateMissionPosition(ev)}}
           >
+            {MissionPosition && <Marker
+              position={{
+                lat: MissionPosition.lat,
+                lng: MissionPosition.long,
+              }} 
+              />}
+
             {positions.map((position, index) => (
               <Marker
                 key={index}
-              
+
                 icon={
                   {
                     url: "/ambulance.png"
@@ -162,7 +190,7 @@ export default function MapPage() {
             {hospitals.map((hospital, index) => (
               <Marker
                 key={index}
-              
+
                 icon={
                   {
                     url: "/hospital.png"
@@ -211,10 +239,7 @@ export default function MapPage() {
               <DialogTitle>Create New Mission</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" name="address" value={newMission.address} onChange={handleInputChange} />
-              </div>
+              
               <div>
                 <Label htmlFor="driver">Driver</Label>
                 <Select onValueChange={(value) => handleSelectChange("driver", value)}>
@@ -237,7 +262,7 @@ export default function MapPage() {
                     <SelectValue placeholder="Select a hospital" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockHospitals.map((hospital) => (
+                    {hospitals.map((hospital) => (
                       <SelectItem key={hospital.id} value={hospital.id.toString()}>
                         {hospital.name}
                       </SelectItem>

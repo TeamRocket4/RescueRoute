@@ -17,10 +17,12 @@ public class Mission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private MissionStatus status;
 
-    private double address;
+
+    private double latitude;
+
+    private double longitude;
+
 
     @ManyToOne
     @JoinColumn(name = "driver_id")
@@ -33,4 +35,8 @@ public class Mission {
     @ManyToOne
     @JoinColumn(name = "hospital_id")
     private Hospital hospital;
+
+
+    @Enumerated(EnumType.STRING)
+    private MissionStatus status;
 }
