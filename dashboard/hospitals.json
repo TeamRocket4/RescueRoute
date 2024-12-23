@@ -1,0 +1,122 @@
+[
+    {
+        "name": "Dr. ELLA ARUTINIAN, PhD Gynécologue Obstétricienne",
+        "address": "C, 1°ét, Derrière le centre Américain, Résidence Le Noyer, n° 14 Rue Ibn Sina, Marrakech",
+        "latitude": 31.6387546,
+        "longitude": -8.0102583
+    },
+    {
+        "name": "Clinique menara",
+        "address": "19, Albek, Quartier de l’Hôpital, Gueliz, Marrakech",
+        "latitude": 31.64092909999999,
+        "longitude": -8.012174099999998
+    },
+    {
+        "name": "مصحة النرجس مراكش",
+        "address": "112 Quartier O.L.M, Route de Targa, Marrakech",
+        "latitude": 31.640223,
+        "longitude": -8.01991
+    },
+    {
+        "name": "Foyer Des Medecins Internes CHU MOHAMMED VI",
+        "address": "M274+79H, Boulevard Al Moustachfayate, Marrakech",
+        "latitude": 31.6631769,
+        "longitude": -7.994015500000001
+    },
+    {
+        "name": "Hôpital AR-RAZI",
+        "address": "M273+8WV, Marrakesh",
+        "latitude": 31.6633669,
+        "longitude": -7.995190999999998
+    },
+    {
+        "name": "Centre d'Oncologie et Hématologie",
+        "address": "Marrakesh",
+        "latitude": 31.664193,
+        "longitude": -7.995924899999999
+    },
+    {
+        "name": "Afquaris",
+        "address": "M273+VFF, CHU MOHAMMED VI, Marrakesh",
+        "latitude": 31.66469339999999,
+        "longitude": -7.996329299999999
+    },
+    {
+        "name": "Clinical Research Center",
+        "address": "Avenue Ibn Sina, Marrakech",
+        "latitude": 31.6652601,
+        "longitude": -7.9967031
+    },
+    {
+        "name": "Hôpital Privé de Marrakech HPM",
+        "address": "Lotissement Ryads Al Atlas (Embarka III), Bd Mohamed IV Route du barrage, Marrakech",
+        "latitude": 31.59015540000001,
+        "longitude": -8.002034799999999
+    },
+    {
+        "name": "مصحة الرحمة",
+        "address": "Lot Zineb El, Marrakech",
+        "latitude": 31.6496677,
+        "longitude": -8.0484014
+    },
+    {
+        "name": "The clinical Marrakech",
+        "address": "Quartier Masmoudi Targua, Marrakech",
+        "latitude": 31.6537547,
+        "longitude": -8.051041999999999
+    },
+    {
+        "name": "Medical Office Dr El Hamidi D'hépato-Gastro-Entérologie",
+        "address": "4ème étage, Appt 20, Résidence Fatima, 66, Massira 1 D, Marrakech",
+        "latitude": 31.6349028,
+        "longitude": -8.057904299999999
+    },
+    {
+        "name": "CENTRE HOSPITALO-UNIVERSITAIRE MOHAMMED VI MARRAKECH",
+        "address": "BP2360 Principal, Avenue Ibn Sina, Marrakech",
+        "latitude": 31.6647208,
+        "longitude": -7.9963213
+    },
+    {
+        "name": "Clinique Internationale De Marrakech",
+        "address": "Rte de l'aéroport, Avenue Guemassa, Marrakech",
+        "latitude": 31.61311,
+        "longitude": -7.996907000000001
+    },
+    {
+        "name": "Ibn Tofail University Hospital",
+        "address": "Rue Abdelouahab Derraq, Marrakech",
+        "latitude": 31.6419062,
+        "longitude": -8.015753700000001
+    },
+    {
+        "name": "Hospital Ibn Zohr",
+        "address": "J293+8XP, Marrakesh",
+        "latitude": 31.61832510000001,
+        "longitude": -7.995052400000001
+    },
+    {
+        "name": "Hopital Militaire avicenne",
+        "address": "JXMH+VFW, Avenue Al Mouqaouama, Marrakech",
+        "latitude": 31.63474059999999,
+        "longitude": -8.021292199999998
+    },
+    {
+        "name": "مستشفى رياض الموخى",
+        "address": "Institut de Formation aux Carrières de Santé, Rue El Moustachfa, Marrakech",
+        "latitude": 31.6228364,
+        "longitude": -7.9880681
+    },
+    {
+        "name": "Ibn Nafis Hospital",
+        "address": "Boulevard Al Moustachfayate, Marrakech",
+        "latitude": 31.662246,
+        "longitude": -7.996336500000001
+    },
+    {
+        "name": "Polyclinique du Sud",
+        "address": "2 Rue Yougoslavie, Marrakech",
+        "latitude": 31.6381666,
+        "longitude": -8.015043
+    }
+]

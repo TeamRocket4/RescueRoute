@@ -1,0 +1,6 @@
+projectKey=RescueRoute_Spring
+serverUrl=http://localhost:9001
+serverVersion=9.9.7.96285
+dashboardUrl=http://localhost:9001/dashboard?id=RescueRoute_Spring
+ceTaskId=AZO_sGVNA932n17P5Pzi
+ceTaskUrl=http://localhost:9001/api/ce/task?id=AZO_sGVNA932n17P5Pzi
