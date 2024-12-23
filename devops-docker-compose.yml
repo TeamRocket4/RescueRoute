@@ -61,7 +61,17 @@ services:
       - devops_network
     depends_on:
       - ambulance_db
-
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: dashboard_service
+    ports:
+      - "3000:3000"
+    networks:
+      - devops_network
+    depends_on:
+      - ambulance_db
   ambulance_db:
     container_name: ambulance_db
     image: mysql:8.0
