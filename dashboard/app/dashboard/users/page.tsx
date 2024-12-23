@@ -126,11 +126,11 @@ export default function UsersPage() {
                 <Label htmlFor="role">Role</Label>
                 <Select onValueChange={(value) => handleSelectChange(value, 'role', true)} value={newUser.role}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
+                    <SelectValue id ="Role" placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={Role.DISPATCHER}>Dispatcher</SelectItem>
-                    <SelectItem value={Role.DRIVER}>Driver</SelectItem>
+                    <SelectItem id="Dispatcher" value={Role.DISPATCHER}>Dispatcher</SelectItem>
+                    <SelectItem id ="Driver" value={Role.DRIVER}>Driver</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -138,12 +138,12 @@ export default function UsersPage() {
                 <Label htmlFor="status">Status</Label>
                 <Select onValueChange={(value) => handleSelectChange(value, 'status', true)} value={newUser.status}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a status" />
+                    <SelectValue id ="Status" placeholder="Select a status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={Status.STANDBY}>Standby</SelectItem>
-                    <SelectItem value={Status.BUSY}>Busy</SelectItem>
-                    <SelectItem value={Status.OUTOFSERVICE}>Out of Service</SelectItem>
+                    <SelectItem id = "Standby" value={Status.STANDBY}>Standby</SelectItem>
+                    <SelectItem id ="Busy" value={Status.BUSY}>Busy</SelectItem>
+                    <SelectItem id ="Out of Service" value={Status.OUTOFSERVICE}>Out of Service</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -184,7 +184,7 @@ export default function UsersPage() {
                   <div className="flex space-x-2">
                     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => setEditingUser(user)}>
+                        <Button id ="editButton" variant="outline" size="sm" onClick={() => setEditingUser(user)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
@@ -237,7 +237,7 @@ export default function UsersPage() {
                             <Input id="editBirthDate" name="birthDate" type="date" value={editingUser?.birthDate || ''} onChange={(e) => handleInputChange(e, false)} />
                           </div>
                         </div>
-                        <Button onClick={handleUpdateUser} className="bg-[#F95738] hover:bg-[#F95738]/90">
+                        <Button  onClick={handleUpdateUser} className="bg-[#F95738] hover:bg-[#F95738]/90">
                           Update User
                         </Button>
                       </DialogContent>

@@ -107,7 +107,7 @@ export default function HospitalsPage() {
                 </div>
               </div>
             </div>
-            <Button onClick={handleAddHospital} className="bg-[#F95738] hover:bg-[#F95738]/90">
+            <Button id = "AddHospitalButton"onClick={handleAddHospital} className="bg-[#F95738] hover:bg-[#F95738]/90">
               Add Hospital
             </Button>
           </DialogContent>
@@ -135,7 +135,7 @@ export default function HospitalsPage() {
                   <div className="flex space-x-2">
                     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" onClick={() => setEditingHospital(hospital)}>
+                        <Button id="editButton" variant="outline" size="sm" onClick={() => setEditingHospital(hospital)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
@@ -163,7 +163,7 @@ export default function HospitalsPage() {
                             </div>
                           </div>
                         </div>
-                        <Button onClick={handleUpdateHospital} className="bg-[#F95738] hover:bg-[#F95738]/90">
+                        <Button id="UpdateButton" onClick={handleUpdateHospital} className="bg-[#F95738] hover:bg-[#F95738]/90">
                           Update Hospital
                         </Button>
                       </DialogContent>
