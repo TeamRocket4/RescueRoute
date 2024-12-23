@@ -61,6 +61,17 @@ services:
       - devops_network
     depends_on:
       - ambulance_db
+
+  ambulance_db:
+    container_name: ambulance_db
+    image: mysql:8.3
+    environment:
+      MYSQL_ROOT_PASSWORD: hamza2001
+      MYSQL_DATABASE: rescueroute
+    ports:
+      - "3306:3306"
+    networks:
+      - devops_network
   dashboard:
     build:
       context: ./dashboard
@@ -72,19 +83,6 @@ services:
       - devops_network
     depends_on:
       - ambulance_db
-  ambulance_db:
-    container_name: ambulance_db
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: hamza2001
-      MYSQL_DATABASE: rescueroute
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - devops_network
-    ports:
-      - "3306:3306"
-
   mysql-test:
     image: mysql:8.0
     container_name: mysql-test
@@ -108,3 +106,5 @@ volumes:
 networks:
   devops_network:
     external: true
+
+
