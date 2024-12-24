@@ -10,8 +10,8 @@ services:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
       - maven_repo:/var/jenkins_home/.m2/repository
-    networks:
-      - devops_network
+    network_mode: "host"
+
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
