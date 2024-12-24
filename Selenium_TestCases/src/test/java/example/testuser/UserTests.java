@@ -1,4 +1,4 @@
-package example.TestUser;
+package example.testuser;
 
 import example.pageobjects.UserPage;
 import org.junit.jupiter.api.*;
