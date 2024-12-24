@@ -62,6 +62,23 @@ services:
     depends_on:
       - ambulance_db
 
+  springboot_test:
+    build:
+      context: ./Ambulance_Spring
+      dockerfile: Dockerfile
+    container_name: springboot_test_service
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-test:3306/test_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    networks:
+      - devops_network
+    command: ["./mvnw", "test"]
+
   ambulance_db:
     container_name: ambulance_db
     image: mysql:8.3
@@ -72,6 +89,7 @@ services:
       - "3306:3306"
     networks:
       - devops_network
+
   dashboard:
     build:
       context: ./dashboard
@@ -83,6 +101,7 @@ services:
       - devops_network
     depends_on:
       - ambulance_db
+
   mysql-test:
     image: mysql:8.0
     container_name: mysql-test
@@ -90,9 +109,14 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test_db
     ports:
-      - "3307:3306"  # Use a different port from the development database
+      - "3307:3306"
     networks:
       - devops_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   jenkins_home:
@@ -106,5 +130,3 @@ volumes:
 networks:
   devops_network:
     external: true
-
-
