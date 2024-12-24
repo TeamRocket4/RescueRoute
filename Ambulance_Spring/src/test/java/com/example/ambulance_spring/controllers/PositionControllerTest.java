@@ -1,4 +1,4 @@
-package com.example.ambulance_spring;
+package com.example.ambulance_spring.controllers;
 
 import com.example.ambulance_spring.controllers.PositionController;
 import com.example.ambulance_spring.dto.MissionRequest;
