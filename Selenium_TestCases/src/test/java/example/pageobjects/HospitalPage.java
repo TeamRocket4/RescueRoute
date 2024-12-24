@@ -12,7 +12,6 @@ public class HospitalPage {
     WebDriver driver;
     WebDriverWait wait;
 
-    // Locators
     private final By addHospitalButton = By.xpath("//button[contains(text(),'Add Hospital')]");
     private final By editButton = By.id("editButton");
     private final By hospitalNameField = By.id("name");
@@ -24,7 +23,7 @@ public class HospitalPage {
     private final By hospitalEditAddressField = By.id("editAddress");
     private final By hospitalEditLatitudeField = By.id("editLatitude");
     private final By hospitalEditLongitudeField = By.id("editLongitude");
-    private final By updateButton = By.xpath("/html/body/div[5]/button[1]");
+    private final By updateButton = By.id("UpdateButton");
 
     public HospitalPage(WebDriver driver) {
         this.driver = driver;
@@ -55,9 +54,7 @@ public class HospitalPage {
         driver.findElement(saveButton).click();
     }
 
-    // Updated method to work like the addHospital function for editing
     public void updateHospital(String name, String address, String latitude, String longitude) {
-        // Fill in the hospital details in the edit form (similar to fillHospitalDetails)
         WebElement editNameField = wait.until(ExpectedConditions.elementToBeClickable(By.id("editName")));
 
         driver.findElement(hospitalEditNameField).clear();
@@ -72,7 +69,6 @@ public class HospitalPage {
         driver.findElement(hospitalEditLongitudeField).clear();
         driver.findElement(hospitalEditLongitudeField).sendKeys(longitude);
 
-        // Click the update button to save the updated hospital
         driver.findElement(updateButton).click();
     }
 }
