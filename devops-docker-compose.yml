@@ -3,62 +3,48 @@ services:
     image: jenkins/jenkins:lts
     container_name: jenkins
     user: root
-    ports:
-      - "8090:8080"
-      - "50000:50000"
+    network_mode: "host"
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
       - maven_repo:/var/jenkins_home/.m2/repository
-    networks:
-      - devops_network
 
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
-    ports:
-      - "9000:9000"
+    network_mode: "host"
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
-    networks:
-      - devops_network
 
   jmeter:
     image: justb4/jmeter:latest
     container_name: jmeter
+    network_mode: "host"
     volumes:
       - jenkins_home:/var/jenkins_home  # Share Jenkins workspace
-    networks:
-      - devops_network
     command: tail -f /dev/null
 
   trivy:
     image: aquasec/trivy:latest
     container_name: trivy
+    network_mode: "host"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - trivy_cache:/root/.cache/
-    networks:
-      - devops_network
     command: server --listen 0.0.0.0:8080
-    ports:
-      - "8081:8080"
 
   springboot:
     build:
       context: ./Ambulance_Spring
       dockerfile: Dockerfile
     container_name: springboot_service
+    network_mode: "host"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://ambulance_db:3306/rescueroute
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3308/rescueroute
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: hamza2001
-    ports:
-      - "8080:8080"
-    networks:
-      - devops_network
     depends_on:
       - ambulance_db
 
@@ -67,51 +53,49 @@ services:
       context: ./Ambulance_Spring
       dockerfile: Dockerfile
     container_name: springboot_test_service
+    network_mode: "host"
     environment:
       SPRING_PROFILES_ACTIVE: test
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-test:3306/test_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/test_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
     depends_on:
       mysql-test:
         condition: service_healthy
-    networks:
-      - devops_network
     command: ["./mvnw", "test"]
 
   ambulance_db:
     container_name: ambulance_db
-    image: mysql:8.3
-    environment:
-      MYSQL_ROOT_PASSWORD: hamza2001
-      MYSQL_DATABASE: rescueroute
+    image: mysql:8.0
     ports:
-      - "3306:3306"
-    networks:
-      - devops_network
+      - "3307:3306"  # Map host port 3307 to container port 3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rescueroute
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   dashboard:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
     container_name: dashboard_service
-    ports:
-      - "3000:3000"
-    networks:
-      - devops_network
+    network_mode: "host"
     depends_on:
       - ambulance_db
 
   mysql-test:
     image: mysql:8.0
     container_name: mysql-test
+    ports:
+      - "3306:3306"  # Map host port 3306 to container port 3306
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test_db
-    ports:
-      - "3307:3306"
-    networks:
-      - devops_network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
@@ -126,7 +110,3 @@ volumes:
   trivy_cache:
   maven_repo:
   mysql_data:
-
-networks:
-  devops_network:
-    external: true
