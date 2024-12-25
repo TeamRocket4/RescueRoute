@@ -111,4 +111,117 @@ class MissionServiceTest {
         verify(hospitalRepository, times(1)).findById(3L);
         verify(missionRepository, times(0)).save(any(Mission.class));
     }
+
+
+    @Test
+    void createMission_Failure_DriverNotFound() {
+        MissionRequest request = new MissionRequest();
+        request.setDriver(1L);
+        request.setDispatcher(2L);
+        request.setHospital(3L);
+        request.setLatitude(45.0);
+        request.setLongitude(-93.0);
+
+        User dispatcher = new User();
+        dispatcher.setId(2L);
+        Hospital hospital = new Hospital();
+        hospital.setId(3L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.findById(2L)).thenReturn(Optional.of(dispatcher));
+        when(hospitalRepository.findById(3L)).thenReturn(Optional.of(hospital));
+
+        Mission result = missionService.createMission(request);
+
+        assertNull(result);
+        verify(missionRepository, never()).save(any(Mission.class));
+    }
+
+    @Test
+    void createMission_Failure_DispatcherNotFound() {
+        MissionRequest request = new MissionRequest();
+        request.setDriver(1L);
+        request.setDispatcher(2L);
+        request.setHospital(3L);
+        request.setLatitude(45.0);
+        request.setLongitude(-93.0);
+
+        User driver = new User();
+        driver.setId(1L);
+        Hospital hospital = new Hospital();
+        hospital.setId(3L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(driver));
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        when(hospitalRepository.findById(3L)).thenReturn(Optional.of(hospital));
+
+        Mission result = missionService.createMission(request);
+
+        assertNull(result);
+        verify(missionRepository, never()).save(any(Mission.class));
+    }
+
+    @Test
+    void createMission_Failure_HospitalNotFound() {
+        MissionRequest request = new MissionRequest();
+        request.setDriver(1L);
+        request.setDispatcher(2L);
+        request.setHospital(3L);
+        request.setLatitude(45.0);
+        request.setLongitude(-93.0);
+
+        User driver = new User();
+        driver.setId(1L);
+        User dispatcher = new User();
+        dispatcher.setId(2L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(driver));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(dispatcher));
+        when(hospitalRepository.findById(3L)).thenReturn(Optional.empty());
+
+        Mission result = missionService.createMission(request);
+
+        assertNull(result);
+        verify(missionRepository, never()).save(any(Mission.class));
+    }
+
+    @Test
+    void createMission_ValidatesAllFields() {
+        MissionRequest request = new MissionRequest();
+        request.setDriver(1L);
+        request.setDispatcher(2L);
+        request.setHospital(3L);
+        request.setLatitude(45.0);
+        request.setLongitude(-93.0);
+
+        User driver = new User();
+        driver.setId(1L);
+        User dispatcher = new User();
+        dispatcher.setId(2L);
+        Hospital hospital = new Hospital();
+        hospital.setId(3L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(driver));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(dispatcher));
+        when(hospitalRepository.findById(3L)).thenReturn(Optional.of(hospital));
+
+        Mission savedMission = new Mission();
+        savedMission.setId(1L);
+        savedMission.setDriver(driver);
+        savedMission.setDispatcher(dispatcher);
+        savedMission.setHospital(hospital);
+        savedMission.setLatitude(45.0);
+        savedMission.setLongitude(-93.0);
+        savedMission.setStatus(MissionStatus.ASSIGNED);
+
+        when(missionRepository.save(any(Mission.class))).thenReturn(savedMission);
+
+        Mission result = missionService.createMission(request);
+
+        assertNotNull(result);
+        assertEquals(45.0, result.getLatitude());
+        assertEquals(-93.0, result.getLongitude());
+        assertEquals(MissionStatus.ASSIGNED, result.getStatus());
+        verify(missionRepository).save(any(Mission.class));
+    }
 }
