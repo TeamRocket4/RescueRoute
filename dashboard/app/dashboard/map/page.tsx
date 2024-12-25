@@ -53,7 +53,7 @@ export default function MapPage() {
   useEffect(() => {
     // Connect to the WebSocket server
     fetchHospitals();
-    const socket = new SockJS('http://localhost:8080/position');
+    const socket = new SockJS('http://springboot:8080/position');
     const client = new Client({
       webSocketFactory: () => socket,  // Provide SockJS as the WebSocket factory
     });
