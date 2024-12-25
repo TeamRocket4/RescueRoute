@@ -17,17 +17,17 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/clockout/{id}")
-    private ResponseEntity<String> clockout(@PathVariable Long id){
+    public ResponseEntity<String> clockout(@PathVariable Long id){
         return ResponseEntity.status(200).body(userService.clockout(id).getStatus().toString());
     }
 
     @PostMapping("/clockin/{id}")
-    private ResponseEntity<String> clockin(@PathVariable Long id){
+    public ResponseEntity<String> clockin(@PathVariable Long id){
         return ResponseEntity.status(200).body(userService.clockin(id).getStatus().toString());
     }
 
     @GetMapping("/drivers")
-    private ResponseEntity<List<User>> getDrivers(){
+    public ResponseEntity<List<User>> getDrivers(){
         List<User> drivers = userService.getDrivers();
         return ResponseEntity.status(200).body(drivers);
     }

@@ -1,8 +1,8 @@
 package com.example.ambulance_spring.controllers;
 
-import com.example.ambulance_spring.controllers.PositionController;
 import com.example.ambulance_spring.dto.MissionRequest;
 import com.example.ambulance_spring.entities.Mission;
+import com.example.ambulance_spring.entities.Position;
 import com.example.ambulance_spring.entities.enums.MissionStatus;
 import com.example.ambulance_spring.services.MissionService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -26,6 +24,20 @@ class PositionControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void send_shouldReturnPosition() {
+        // Arrange
+        Position inputPosition = new Position(1L, 40.7128, -74.0060);
+
+        // Act
+        Position result = positionController.send(inputPosition);
+
+        // Assert
+        assertEquals(inputPosition.getId(), result.getId());
+        assertEquals(inputPosition.getLatitude(), result.getLatitude());
+        assertEquals(inputPosition.getLongitude(), result.getLongitude());
     }
 
     @Test
