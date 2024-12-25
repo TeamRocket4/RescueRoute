@@ -77,6 +77,8 @@ services:
       context: ./dashboard
       dockerfile: Dockerfile
     container_name: dashboard_service
+    ports:
+      - "3000:3000"
     depends_on:
       - ambulance_db
     networks:
