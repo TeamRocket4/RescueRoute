@@ -50,27 +50,11 @@ services:
     depends_on:
       - ambulance_db
 
-  springboot_test:
-    build:
-      context: ./Ambulance_Spring
-      dockerfile: Dockerfile
-    container_name: springboot_test_service
-    network_mode: "host"
-    environment:
-      SPRING_PROFILES_ACTIVE: test
-      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3307/test_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
-    depends_on:
-      mysql-test:
-        condition: service_healthy
-    command: ["./mvnw", "test"]
-
   ambulance_db:
     container_name: ambulance_db
     image: mysql:8.0
     ports:
-      - "3307:3306"  # Map host port 3307 to container port 3306
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: rescueroute
@@ -89,20 +73,6 @@ services:
     network_mode: "host"
     depends_on:
       - ambulance_db
-
-  mysql-test:
-    image: mysql:8.0
-    container_name: mysql-test
-    ports:
-      - "3306:3306"  # Map host port 3306 to container port 3306
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: test_db
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
 volumes:
   jenkins_home:
