@@ -37,8 +37,18 @@ public class MissionServiceImpl implements MissionService {
         mission.setLongitude(request.getLongitude());
         mission.setLatitude(request.getLatitude());
         mission.setDriver(driver);
-        mission.setStatus(MissionStatus.ASSIGNED);
+        mission.setStatus(MissionStatus.PICKUP);
         mission.setHospital(hospital);
         return missionRepository.save(mission);
+    }
+
+    @Override
+    public Mission updateStatus(Long id, MissionStatus status) {
+        Mission mission = missionRepository.findById(id).orElse(null);
+        if(mission!=null){
+            mission.setStatus(status);
+            return missionRepository.save(mission);
+        }
+        return null;
     }
 }
