@@ -9,42 +9,81 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      - maven_repo:/var/jenkins_home/.m2/repository  
-    networks:
-      - devops_network
+      - maven_repo:/var/jenkins_home/.m2/repository
 
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
-    ports:
-      - "9000:9000"
+    network_mode: "host"
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
-    networks:
-      - devops_network
 
   jmeter:
     image: justb4/jmeter:latest
     container_name: jmeter
+    network_mode: "host"
     volumes:
-      - jenkins_home:/var/jenkins_home  # Share Jenkins workspace
-    networks:
-      - devops_network
+      - jenkins_home:/var/jenkins_home
     command: tail -f /dev/null
 
   trivy:
     image: aquasec/trivy:latest
     container_name: trivy
+    network_mode: "host"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - trivy_cache:/root/.cache/
-    networks:
-      - devops_network
-    command: server --listen 0.0.0.0:8080
+    command: server --listen 0.0.0.0:8081
+
+  ambulance_db:
+    container_name: ambulance_db
+    image: mysql:8.0
     ports:
-      - "8081:8080"  
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rescueroute
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ambulance-network
+
+  springboot:
+    build:
+      context: ./Ambulance_Spring
+      dockerfile: Dockerfile
+    container_name: springboot_service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://ambulance_db:3306/rescueroute
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL-AUTO: update
+    depends_on:
+      ambulance_db:
+        condition: service_healthy
+    networks:
+      - ambulance-network
+
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: dashboard
+    ports:
+      - "3001:3000"  # Change the external port to 3001
+    depends_on:
+      - ambulance_db
+    networks:
+      - ambulance-network
+
 
 volumes:
   jenkins_home:
@@ -52,8 +91,9 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
   trivy_cache:
-  maven_repo:   
+  maven_repo:
+  mysql_data:
 
 networks:
-  devops_network:
+  ambulance-network:
     driver: bridge
