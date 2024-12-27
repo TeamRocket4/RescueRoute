@@ -2,11 +2,9 @@ import { User } from "./user";
 import { Hospital } from "./hospital";
 
 export enum MissionStatus {
-  PENDING = "PENDING",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-  ASSIGNED = "ASSIGNED"
+  PICKUP = "PICKUP",
+  ONROUTETOHOSPITAL = "ONROUTETOHOSPITAL",
+  DONE = "DONE",
 }
 
 export interface Mission {
