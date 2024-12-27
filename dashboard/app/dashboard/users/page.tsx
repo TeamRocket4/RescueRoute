@@ -91,10 +91,10 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-medium text-[#F95738]">User Management</h3>
+        <h3 className="text-2xl font-medium text-[#6C63FF]">User Management</h3>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#F95738] hover:bg-[#F95738]/90">
+            <Button className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add User
             </Button>
@@ -152,7 +152,7 @@ export default function UsersPage() {
                 <Input id="birthDate" name="birthDate" type="date" value={newUser.birthDate || ''} onChange={(e) => handleInputChange(e, true)} />
               </div>
             </div>
-            <Button onClick={handleAddUser} className="bg-[#F95738] hover:bg-[#F95738]/90">
+            <Button onClick={handleAddUser} className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
               Add User
             </Button>
           </DialogContent>
@@ -237,7 +237,7 @@ export default function UsersPage() {
                             <Input id="editBirthDate" name="birthDate" type="date" value={editingUser?.birthDate || ''} onChange={(e) => handleInputChange(e, false)} />
                           </div>
                         </div>
-                        <Button  onClick={handleUpdateUser} className="bg-[#F95738] hover:bg-[#F95738]/90">
+                        <Button  onClick={handleUpdateUser} className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
                           Update User
                         </Button>
                       </DialogContent>

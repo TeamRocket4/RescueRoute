@@ -35,9 +35,9 @@ export function MissionListPanel({ onMissionSelect }: MissionListPanelProps) {
 
   return (
     <div className="w-64 bg-white shadow-md p-4 flex flex-col h-full overflow-hidden">
-      <h3 className="text-lg font-semibold mb-4 text-[#F95738]">Missions</h3>
+      <h3 className="text-lg font-semibold mb-4 text-[#6C63FF]">Missions</h3>
       <ScrollArea className="flex-grow overflow-y-auto">
-        {missions.filter((mission) => mission.status === MissionStatus.PICKUP).map((mission) => (
+        {missions.filter((mission) => mission.status === MissionStatus.PICKUP || mission.status === MissionStatus.ONROUTETOHOSPITAL).map((mission) => (
           <div key={mission.id} className="mb-4 p-2 border rounded">
             <div className="flex justify-between items-center mb-2">
               <span className="font-medium">Mission #{mission.id}</span>
@@ -53,7 +53,7 @@ export function MissionListPanel({ onMissionSelect }: MissionListPanelProps) {
       </ScrollArea>
       <Button 
         onClick={fetchMissions} 
-        className="mt-4 bg-[#F95738] hover:bg-[#F95738]/90"
+        className="mt-4 bg-[#6C63FF] hover:bg-[#6C63FF]/90"
       >
         Refresh Missions
       </Button>

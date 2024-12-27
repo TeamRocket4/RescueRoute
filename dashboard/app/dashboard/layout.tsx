@@ -32,7 +32,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-gray-100">
       <aside className="w-64 bg-white shadow-md">
         <div className="flex h-20 items-center justify-center">
-          <h1 className="text-2xl font-bold text-[#F95738]">Dispatcher</h1>
+          <h1 className="text-2xl font-bold text-[#6C63FF]">Dispatcher</h1>
         </div>
         <SidebarNav items={sidebarNavItems} />
       </aside>

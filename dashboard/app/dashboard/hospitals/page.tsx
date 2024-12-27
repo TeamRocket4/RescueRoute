@@ -116,12 +116,12 @@ export default function HospitalsPage() {
   return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-medium text-[#F95738]">
+          <h3 className="text-2xl font-medium text-[#6C63FF]">
             Hospital Management
           </h3>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#F95738] hover:bg-[#F95738]/90">
+              <Button className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Hospital
               </Button>
@@ -175,7 +175,7 @@ export default function HospitalsPage() {
               <Button
                   id="AddHospitalButton"
                   onClick={handleAddHospital}
-                  className="bg-[#F95738] hover:bg-[#F95738]/90"
+                  className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
               >
                 Add Hospital
               </Button>
@@ -265,7 +265,7 @@ export default function HospitalsPage() {
                             <Button
                                 id="UpdateButton"
                                 onClick={handleUpdateHospital}
-                                className="bg-[#F95738] hover:bg-[#F95738]/90"
+                                className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
                             >
                               Update Hospital
                             </Button>

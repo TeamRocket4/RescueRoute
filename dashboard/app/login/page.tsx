@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { UserAuthForm } from "@/components/user-auth-form"
 
+import logo from "@/public/logo_foreground.png";
+
 export const metadata: Metadata = {
   title: "Login",
   description: "Login to your account",
@@ -15,16 +17,15 @@ export default function LoginPage() {
   return (
     <div className="container relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-        <div className="absolute inset-0 bg-[#F95738]" />
+        <div className="absolute inset-0 bg-[#6C63FF]" />
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Image
-            src="/logo.png"
+            src={logo}
             alt="RescueRoute Logo"
-            width={40}
+            width={600}
             height={40}
             className="mr-2"
           />
-          RescueRoute
         </div>
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
@@ -50,14 +51,14 @@ export default function LoginPage() {
             By logging in, you agree to our{" "}
             <Link
               href="/terms"
-              className="underline underline-offset-4 hover:text-[#F95738]"
+              className="underline underline-offset-4 hover:text-[#6C63FF]"
             >
               Terms of Service
             </Link>{" "}
             and{" "}
             <Link
               href="/privacy"
-              className="underline underline-offset-4 hover:text-[#F95738]"
+              className="underline underline-offset-4 hover:text-[#6C63FF]"
             >
               Privacy Policy
             </Link>

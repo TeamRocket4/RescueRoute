@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -40,7 +40,7 @@ export default function MapPage() {
 
   const [MissionPosition, setMissionPossition] = useState(null);
 
-  const [SelectedDriver, setSelectedDriver] = useState<Position | null>(null);
+  const [SelectedDriver, setSelectedDriver] = useState<User | null>(null);
   const [SelectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
 
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
@@ -114,6 +114,7 @@ export default function MapPage() {
 
 
   const handleButtonClick = (option: string) => {
+    console.log(position)
     setSelectedOption(option)
   }
 
@@ -158,25 +159,45 @@ export default function MapPage() {
     })
   }
 
-  const handleMissionSelect = (mission: Mission | null) => {
-    if(mission!=null){
-      setSelectedMission(mission);
+  const handleMissionSelect = async (mission: Mission | null) => {
+    if (mission != null) {
       console.log(mission);
-      setSelectedDriver(positions.find(item => item.id == mission.driver) || null)
-      setSelectedHospital(hospitals.find(item => item.id == mission.hospital) || null)
+
+      try {
+        const driverResponse = await apiClient.get(mission._links.driver.href);
+        setSelectedDriver(driverResponse.data);
+
+        const hospitalResponse = await apiClient.get(mission._links.hospital.href);
+        setSelectedHospital(hospitalResponse.data);
+
+
+
+        // Work with driverResponse.data directly for positions
+        const position = positions.find((pos) => pos.id === driverResponse.data?.id);
+        if (position) {
+          console.log("kat")
+          setPosition(position);
+        }
+
+        // Logs for debugging
+        console.log(driverResponse.data);
+        console.log(hospitalResponse.data);
+
+        setSelectedMission(mission);
+      } catch (error) {
+        console.log(error.message);
+      }
+    } else {
+      setSelectedMission(null);
     }
-    //console.log(positions)
-    //console.log(hospitals)
   };
+
 
 
   const directionsCallback = useCallback((
     result: google.maps.DirectionsResult | null,
     status: google.maps.DirectionsStatus
   ) => {
-    //console.log(selectedMission)
-    console.log(SelectedDriver)
-    console.log(SelectedHospital)
     if (status === 'OK') {
       setDirections(result);
     }
@@ -184,15 +205,118 @@ export default function MapPage() {
 
 
 
+  const renderSelectedMission = useMemo(() => {
+    if (!selectedMission) return null;
+
+    return (
+      <>
+        {selectedMission.status === MissionStatus.PICKUP && (
+          <>
+            <Marker
+              icon={{ url: "/ambulance.png" }}
+              position={{
+                lat: Number(position.latitude),
+                lng: Number(position.longitude)
+              }}
+            />
+            <Marker
+              position={{
+                lat: selectedMission.latitude,
+                lng: selectedMission.longitude
+              }}
+            />
+            <DirectionsService
+              options={{
+                destination: {
+                  lat: Number(position.latitude),
+                  lng: Number(position.longitude)
+                },
+                origin: {
+                  lat: selectedMission.latitude,
+                  lng: selectedMission.longitude
+                },
+                travelMode: google.maps.TravelMode.DRIVING
+              }}
+              callback={directionsCallback}
+            />
+          </>
+        )}
+        {selectedMission.status === MissionStatus.ONROUTETOHOSPITAL && (
+          <>
+            <Marker
+              icon={{ url: "/ambulance.png" }}
+              position={{
+                lat: Number(position.latitude),
+                lng: Number(position.longitude)
+              }}
+            />
+            <Marker
+              icon={{ url: "/hospital.png" }}
+              position={{
+                lat: Number(SelectedHospital?.latitude),
+                lng: Number(SelectedHospital?.longitude)
+              }}
+            />
+            <DirectionsService
+              options={{
+                destination: {
+                  lat: Number(position.latitude),
+                  lng: Number(position.longitude)
+                },
+                origin: {
+                  lat: Number(SelectedHospital?.latitude),
+                  lng: Number(SelectedHospital?.longitude)
+                },
+                travelMode: google.maps.TravelMode.DRIVING
+              }}
+              callback={directionsCallback}
+            />
+          </>
+        )}
+      </>
+    );
+  }, [selectedMission, position, SelectedHospital, MissionStatus, directionsCallback]);
+
+
+  const renderDefaultMarkers = useMemo(() => {
+    if (selectedMission) return null;
+
+    return (
+      <>
+        {positions.map((pos, index) => (
+          <Marker
+            key={`position-${index}`}
+            icon={{ url: "/ambulance.png" }}
+            position={{
+              lat: Number(pos.latitude),
+              lng: Number(pos.longitude),
+            }}
+          />
+        ))}
+        {hospitals.map((hospital, index) => (
+          <Marker
+            key={`hospital-${index}`}
+            icon={{ url: "/hospital.png" }}
+            position={{
+              lat: Number(hospital.latitude),
+              lng: Number(hospital.longitude),
+            }}
+          />
+        ))}
+      </>
+    );
+  }, [positions, hospitals, selectedMission]);
+
+
 
   return (
     <div className="space-y-6 flex h-[calc(100vh-6rem)]">
       <div className="flex-grow space-y-6">
-        <h3 className="text-2xl font-medium text-[#F95738]">Map</h3>
+        <h3 className="text-2xl font-medium text-[#6C63FF]">Map</h3>
         <div className="aspect-video rounded-lg bg-gray-200 flex items-center justify-center">
           {/* <div className="text-gray-500" style={{width:"100%", height:"100%"}}> */}
 
-          <LoadScript googleMapsApiKey="AIzaSyD8HhHi-rHWHyGTIfTnS8kz78gCjyxVsSk">
+          <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_MAPS_KEY!}>
             <GoogleMap
               mapContainerStyle={containerStyle}
               center={MissionPosition || center}
@@ -206,106 +330,26 @@ export default function MapPage() {
                 }}
               />}
 
+
               {selectedMission ? (
                 <>
-                  {selectedMission.status === MissionStatus.PICKUP &&
-                    <>
-                      <Marker
-                        icon={{ url: "/ambulance.png" }}
-                        position={{
-                          lat: Number(SelectedDriver?.latitude),
-                          lng: Number(SelectedDriver?.longitude)
-                        }} />
-                      <Marker
-                        position={{
-                          lat: selectedMission.latitude,
-                          lng: selectedMission.longitude
-                        }} />
-                      <DirectionsService
-                        options={{
-                          destination: {
-                            lat: Number(SelectedDriver?.latitude),
-                            lng: Number(SelectedDriver?.longitude)
-                          },
-                          origin: {
-                            lat: selectedMission.latitude,
-                            lng: selectedMission.longitude
-                          },
-                          travelMode: google.maps.TravelMode.DRIVING
-                        }}
-                        callback={directionsCallback}
-                      />
-                    </>
-                  }
-                  {selectedMission.status === MissionStatus.ONROUTETOHOSPITAL &&
-                    <>
-                      <Marker
-                        icon={{ url: "/ambulance.png" }}
-                        position={{
-                          lat: Number(SelectedDriver?.latitude),
-                          lng: Number(SelectedDriver?.longitude)
-                        }} />
-                      <Marker
-                        icon={{ url: "/hospital.png" }}
-                        position={{
-                          lat: Number(SelectedHospital?.latitude),
-                          lng: Number(SelectedHospital?.longitude)
-                        }} />
-                      <DirectionsService
-                        options={{
-                          destination: {
-                            lat: Number(SelectedDriver?.latitude),
-                            lng: Number(SelectedDriver?.longitude)
-                          },
-                          origin: {
-                            lat: Number(SelectedHospital?.latitude),
-                            lng: Number(SelectedHospital?.longitude)
-                          },
-                          travelMode: google.maps.TravelMode.DRIVING
-                        }}
-                        callback={directionsCallback}
-                      />
-                    </>
-                  }
-                  {directions && (
-                    <DirectionsRenderer
-                      options={{
-                        directions,
-                      }}
-                    />
-                  )}
-                </>
-              ) : (
+                  {renderSelectedMission}
+                </>) :
                 <>
-                  {positions.map((position, index) => (
-                    <Marker
-                      key={`position-${index}`}
-                      icon={{ url: "/ambulance.png" }}
-                      position={{
-                        lat: Number(position.latitude),
-                        lng: Number(position.longitude),
-                      }}
-                    />
-                  ))}
-                  {hospitals.map((hospital, index) => (
-                    <Marker
-                      key={`hospital-${index}`}
-                      icon={{ url: "/hospital.png" }}
-                      position={{
-                        lat: Number(hospital.latitude),
-                        lng: Number(hospital.longitude),
-                      }}
-                    />
-                  ))}
-                </>
+                  {renderDefaultMarkers}
+                </>}
+
+              {directions && (
+                <DirectionsRenderer
+                  options={{
+                    directions,
+                  }}
+                />
               )}
 
 
 
-              {/* <Marker icon={{
-                  url:'@/public/ambulance.png',
-                  scaledSize: new window.google.maps.Size(50 * 7, 50 * 7),
-                }} position={center} /> */}
+
             </GoogleMap>
           </LoadScript>
 
@@ -314,35 +358,32 @@ export default function MapPage() {
         <div className="flex space-x-4">
           <Button
             onClick={() => handleButtonClick("Show Hospitals")}
-            className="bg-[#F95738] hover:bg-[#F95738]/90"
+            className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
           >
             Show Hospitals
           </Button>
           <Button
             onClick={() => handleButtonClick("Show Drivers")}
-            className="bg-[#F95738] hover:bg-[#F95738]/90"
+            className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
           >
             Show Drivers
           </Button>
           <Button
             onClick={() => handleButtonClick("Optimize Routes")}
-            className="bg-[#F95738] hover:bg-[#F95738]/90"
+            className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
           >
             Optimize Routes
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#F95738] hover:bg-[#F95738]/90">Create Mission</Button>
+              <Button className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">Create Mission</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create New Mission</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" name="address" value={newMission.address} onChange={handleInputChange} />
-                </div>
+
                 <div>
                   <Label htmlFor="driver">Driver</Label>
                   <Select onValueChange={(value) => handleSelectChange("driver", value)}>
@@ -374,7 +415,7 @@ export default function MapPage() {
                   </Select>
                 </div>
               </div>
-              <Button onClick={handleCreateMission} className="bg-[#F95738] hover:bg-[#F95738]/90">
+              <Button onClick={handleCreateMission} className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
                 Create Mission
               </Button>
             </DialogContent>

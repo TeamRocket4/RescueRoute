@@ -51,7 +51,7 @@ class PositionControllerTest {
         createdMission.setId(1L);
         createdMission.setLatitude(40.7128);
         createdMission.setLongitude(-74.0060);
-        createdMission.setStatus(MissionStatus.PENDING);
+        createdMission.setStatus(MissionStatus.PICKUP);
 
         when(missionService.createMission(missionRequest)).thenReturn(createdMission);
 

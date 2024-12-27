@@ -67,7 +67,7 @@ class MissionServiceTest {
         mission.setHospital(hospital);
         mission.setLatitude(45.0);
         mission.setLongitude(-93.0);
-        mission.setStatus(MissionStatus.ASSIGNED);
+        mission.setStatus(MissionStatus.PICKUP);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(driver));
         when(userRepository.findById(2L)).thenReturn(Optional.of(dispatcher));
@@ -84,7 +84,7 @@ class MissionServiceTest {
         assertEquals(3L, result.getHospital().getId());
         assertEquals(45.0, result.getLatitude());
         assertEquals(-93.0, result.getLongitude());
-        assertEquals(MissionStatus.ASSIGNED, result.getStatus());
+        assertEquals(MissionStatus.PICKUP, result.getStatus());
 
         verify(userRepository, times(1)).findById(1L);
         verify(userRepository, times(1)).findById(2L);
@@ -216,7 +216,7 @@ class MissionServiceTest {
         savedMission.setHospital(hospital);
         savedMission.setLatitude(45.0);
         savedMission.setLongitude(-93.0);
-        savedMission.setStatus(MissionStatus.ASSIGNED);
+        savedMission.setStatus(MissionStatus.PICKUP);
 
         when(missionRepository.save(any(Mission.class))).thenReturn(savedMission);
 
@@ -225,7 +225,7 @@ class MissionServiceTest {
         assertNotNull(result);
         assertEquals(45.0, result.getLatitude());
         assertEquals(-93.0, result.getLongitude());
-        assertEquals(MissionStatus.ASSIGNED, result.getStatus());
+        assertEquals(MissionStatus.PICKUP, result.getStatus());
         verify(missionRepository).save(any(Mission.class));
     }
 }
