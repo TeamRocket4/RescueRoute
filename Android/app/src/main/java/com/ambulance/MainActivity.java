@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 // Navigate to SecondActivity
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                Intent intent = new Intent(MainActivity.this, MainActivity2.class);
                 startActivity(intent);
             }
         });
