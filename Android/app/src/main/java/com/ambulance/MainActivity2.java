@@ -8,7 +8,10 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -25,8 +28,10 @@ import com.ambulance.api.ApiService;
 import com.ambulance.api.DirectionApiService;
 import com.ambulance.config.RetrofitClient;
 import com.ambulance.entities.Mission;
+import com.ambulance.entities.MissionStatus;
 import com.ambulance.entities.Position;
 import com.ambulance.requests.DirectionsResponse;
+import com.ambulance.requests.UpdateMissionReq;
 import com.ambulance.utils.PolyUtil;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -42,6 +47,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.chip.Chip;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -69,14 +75,27 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
     private double lat;
     private double lng;
 
+    private boolean pin = false;
+
+    private boolean active = false;
+
     private TextView duration;
 
     private TextView distance;
+
+    private double gotoLat = 0;
+    private double gotoLng = 0;
 
 
     private Gson gson = new Gson();
 
     private LocationCallback locationCallback;
+
+    private Switch aSwitch;
+
+    private Chip chip;
+
+    private Chip mainchip;
 
     DirectionApiService service = RetrofitClient.getClientGoogleAPI().create(DirectionApiService.class);
 
@@ -95,6 +114,9 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
 
         duration = findViewById(R.id.duration);
         distance = findViewById(R.id.distance);
+        aSwitch = findViewById(R.id.switch1);
+        chip = findViewById(R.id.chip);
+        mainchip = findViewById(R.id.chip2);
 
         Call<Void> call = MainActivity.apiService.clockin(Long.parseLong("1"));
 
@@ -141,6 +163,15 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
                         lng = location.getLongitude();
                         lat = location.getLatitude();
                         sendLocation(location.getLatitude(), location.getLongitude());
+                        if(pin){
+                            LatLng loc = new LatLng(lat, lng);
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 15));
+                        }
+                        if(gotoLat != 0 && gotoLng != 0){
+                            googleMap.clear();
+                            getRoute(gotoLat, gotoLng);
+                        }
                     }
                 }
             }
@@ -153,6 +184,44 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
         }
 
 
+        aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    pin = true;
+                } else {
+                    pin = false;
+                }
+            }
+        });
+
+        mainchip.setOnClickListener(view -> {
+            if(!active){
+                googleMap.clear();
+                gotoLat = mission.getHospital().getLatitude();
+                gotoLng = mission.getHospital().getLongitude();
+                getRoute(gotoLat, gotoLng);
+                chip.setText("\uD83D\uDEA8 Take the patient the hospital");
+                mainchip.setText("Finish call");
+                active = true;
+                updateMission(mission.getId(), MissionStatus.ONROUTETOHOSPITAL);
+                Toast.makeText(this, "Picked up patient!", Toast.LENGTH_SHORT).show();
+            }else{
+                mainchip.setText("No Active Mission");
+                chip.setText("\uFE0F Waiting for Calls");
+                mainchip.setEnabled(false);
+                duration.setText("-----");
+                distance.setText("-----");
+                gotoLng = 0;
+                gotoLat = 0;
+                googleMap.clear();
+                active = false;
+                updateMission(mission.getId(), MissionStatus.DONE);
+            }
+
+        });
+
+
     }
 
     @Override
@@ -161,6 +230,7 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             googleMap.setMyLocationEnabled(true);
+            googleMap.setTrafficEnabled(true);
         }
     }
 
@@ -206,8 +276,12 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
 
 
     private void pickUpPatient(){
-        getRoute(mission.getLatitude(),mission.getLongitude());
-        
+        mainchip.setEnabled(true);
+        mainchip.setText("Confirm Pickup");
+        chip.setText("\uD83D\uDEA8 Pick up The Patient");
+        gotoLat = mission.getLatitude();
+        gotoLng = mission.getLongitude();
+        getRoute(gotoLat, gotoLng);
     }
 
 
@@ -218,16 +292,27 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
         String destinationParam = patientLat + "," + patientLng;
         String apiKey = BuildConfig.API_KEY;
 
-        LatLng latLng = new LatLng(mission.getLatitude(), mission.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("Patient");
+        LatLng latLng = new LatLng(patientLat, patientLng);
+        MarkerOptions markerOptions;
+        if(active){
+            markerOptions = new MarkerOptions().position(latLng)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.hospital));
+        }else {
+            markerOptions = new MarkerOptions().position(latLng)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.patient));
+        }
+
         googleMap.addMarker(markerOptions);
+//        googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
+//        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 15));
+
 
         Call<DirectionsResponse> call = service.getDirections(
                 originParam,
                 destinationParam,
-                "pessimistic",         // Traffic model
-                "now",                // Departure time
-                apiKey   // Replace with your actual API key
+                "pessimistic",
+                "now",
+                apiKey
         );
 
         call.enqueue(new retrofit2.Callback<DirectionsResponse>() {
@@ -265,9 +350,8 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
     }
 
 
-    @SuppressLint("CheckResult")
-    private void sendMessage(String destination, Position position) {
-        stompClient.send(destination, gson.toJson(position)).subscribe(() -> {
+    private void sendMessage(String destination, Object object) {
+        stompClient.send(destination, gson.toJson(object)).subscribe(() -> {
             Log.d("Stomp","Message sent successfully");
         }, throwable -> {
             Log.d("Stomp","Error sending message: " + throwable.getMessage());
@@ -330,32 +414,9 @@ public class MainActivity2 extends AppCompatActivity implements OnMapReadyCallba
         sendMessage("/app/position", new Position(1, Lat, Long));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public void updateMission(Long id, MissionStatus status){
+        sendMessage("/app/mission/"+id, new UpdateMissionReq(id, status));
+    }
 
 
 

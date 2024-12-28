@@ -78,7 +78,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               onChange={(e) => handleInputChangePassword(e)}
             />
           </div>
-          <Button disabled={isLoading} className="bg-[#F95738] hover:bg-[#F95738]/90">
+          <Button disabled={isLoading} className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
             {isLoading ? "Signing In..." : "Sign In"}
           </Button>
         </div>

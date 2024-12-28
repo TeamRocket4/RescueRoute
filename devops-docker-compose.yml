@@ -9,42 +9,112 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      - maven_repo:/var/jenkins_home/.m2/repository  
-    networks:
-      - devops_network
+      - maven_repo:/var/jenkins_home/.m2/repository
 
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
-    ports:
-      - "9000:9000"
+    network_mode: "host"
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
+
+  trivy:
+    image: aquasec/trivy:latest
+    container_name: trivy
+    network_mode: "host"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - trivy_cache:/root/.cache/
+    command: server --listen 0.0.0.0:8082
+
+  ambulance_db:
+    container_name: ambulance_db
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rescueroute
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
-      - devops_network
+      - ambulance-network
+
+  springboot:
+    build:
+      context: ./Ambulance_Spring
+      dockerfile: Dockerfile
+    container_name: springboot_service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://ambulance_db:3306/rescueroute
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL-AUTO: update
+    depends_on:
+      ambulance_db:
+        condition: service_healthy
+    networks:
+      - ambulance-network
+
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: dashboard
+    ports:
+      - "3001:3000"
+    depends_on:
+      - ambulance_db
+    networks:
+      - ambulance-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - ambulance-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3005:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    depends_on:
+      - prometheus
+    networks:
+      - ambulance-network
 
   jmeter:
     image: justb4/jmeter:latest
     container_name: jmeter
     volumes:
-      - jenkins_home:/var/jenkins_home  # Share Jenkins workspace
+      - ./jmeter/tests:/jmeter/tests
+      - ./jmeter/results:/jmeter/results
     networks:
-      - devops_network
-    command: tail -f /dev/null
-
-  trivy:
-    image: aquasec/trivy:latest
-    container_name: trivy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - trivy_cache:/root/.cache/
-    networks:
-      - devops_network
-    command: server --listen 0.0.0.0:8080
-    ports:
-      - "8081:8080"  
+      - ambulance-network
 
 volumes:
   jenkins_home:
@@ -52,8 +122,11 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
   trivy_cache:
-  maven_repo:   
+  maven_repo:
+  mysql_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
-  devops_network:
+  ambulance-network:
     driver: bridge

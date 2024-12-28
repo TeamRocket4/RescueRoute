@@ -17,12 +17,8 @@ public class Mission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-
     private double latitude;
-
     private double longitude;
-
 
     @ManyToOne
     @JoinColumn(name = "driver_id")

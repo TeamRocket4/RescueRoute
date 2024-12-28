@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -10,25 +10,13 @@ import { User, Role, Status } from "@/types/user"
 import { Hospital } from "@/types/hospital"
 import { Position } from "@/types/position"
 import { Mission, MissionStatus } from "@/types/mission"
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, Marker, DirectionsRenderer, DirectionsService } from "@react-google-maps/api";
 
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
 import apiClient from "@/lib/api-client"
-import axios from "axios"
-
-// Mock data for demonstration
-const mockDrivers: User[] = [
-  { id: 1, firstName: "John", lastName: "Doe", email: "john@example.com", password: "", role: Role.DRIVER, birthDate: "1990-01-01", status: Status.STANDBY },
-  { id: 2, firstName: "Jane", lastName: "Smith", email: "jane@example.com", password: "", role: Role.DRIVER, birthDate: "1992-05-15", status: Status.STANDBY },
-]
-
-const mockHospitals: Hospital[] = [
-  { id: 1, name: "Central Hospital", address: "123 Main St", latitude: 40.7128, longitude: -74.0060 },
-  { id: 2, name: "Community Health Center", address: "456 Oak Ave", latitude: 34.0522, longitude: -118.2437 },
-]
-
+import { MissionListPanel } from "@/components/mission-list-panel"
 
 
 
@@ -38,21 +26,29 @@ export default function MapPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const [newMission, setNewMission] = useState<Partial<Mission>>({
-    status: MissionStatus.ASSIGNED
+    status: MissionStatus.PICKUP
   })
 
   const [hospitals, setHospitals] = useState<Hospital[]>([])
+  const [drivers, setDrivers] = useState<User[]>([])
 
 
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [position, setPosition] = useState<Partial<Position>>({});
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const [MissionPosition, setMissionPossition] = useState(null);
 
+  const [SelectedDriver, setSelectedDriver] = useState<User | null>(null);
+  const [SelectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
+
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+
+
   useEffect(() => {
-    // Connect to the WebSocket server
     fetchHospitals();
+    fetchDrivers();
     const socket = new SockJS('http://localhost:8080/position');
     const client = new Client({
       webSocketFactory: () => socket,  // Provide SockJS as the WebSocket factory
@@ -92,6 +88,15 @@ export default function MapPage() {
     }
   }
 
+  const fetchDrivers = async () => {
+    try {
+      const response = await apiClient.get('/users')
+      setDrivers(response.data._embedded.users)
+    } catch (error) {
+      console.error('Error fetching drivers:', error)
+    }
+  }
+
 
 
 
@@ -109,6 +114,7 @@ export default function MapPage() {
 
 
   const handleButtonClick = (option: string) => {
+    console.log(position)
     setSelectedOption(option)
   }
 
@@ -121,18 +127,19 @@ export default function MapPage() {
   }
 
   const handleCreateMission = () => {
-    newMission.dispatcher = 1;
-    newMission.latitude = MissionPosition.lat;
-    newMission.longitude = MissionPosition.long;
+    if (MissionPosition.lat != null && MissionPosition.long != null) {
+      newMission.dispatcher = 1;
+      newMission.latitude = MissionPosition.lat;
+      newMission.longitude = MissionPosition.long;
 
-    console.log("Creating mission:", newMission)
+      console.log("Creating mission:", newMission)
 
-    if (stompClient && stompClient.connected) {
-      stompClient.publish({ destination: '/app/position/1', body: JSON.stringify(newMission) });
+      if (stompClient && stompClient.connected) {
+        stompClient.publish({ destination: '/app/driver/1', body: JSON.stringify(newMission) });
+      }
+
+      setIsDialogOpen(false)
     }
-    
-    setIsDialogOpen(false)
-    // Here you would typically send this data to your backend
   }
 
   const containerStyle = {
@@ -147,139 +154,287 @@ export default function MapPage() {
 
   const updateMissionPosition = (ev) => {
     setMissionPossition({
-      lat : ev.latLng.lat(),
-      long : ev.latLng.lng()
+      lat: ev.latLng.lat(),
+      long: ev.latLng.lng()
     })
   }
 
-  return (
-    <div className="space-y-6">
-      <h3 className="text-2xl font-medium text-[#F95738]">Map</h3>
-      <div className="aspect-video rounded-lg bg-gray-200 flex items-center justify-center relative">
-        {/* <div className="text-gray-500" style={{width:"100%", height:"100%"}}> */}
+  const handleMissionSelect = async (mission: Mission | null) => {
+    if (mission != null) {
+      console.log(mission);
 
-        <LoadScript googleMapsApiKey="">
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={MissionPosition || center}
-            zoom={8}
-            onClick={(ev) => {updateMissionPosition(ev)}}
-          >
-            {MissionPosition && <Marker
+      try {
+        const driverResponse = await apiClient.get(mission._links.driver.href);
+        setSelectedDriver(driverResponse.data);
+
+        const hospitalResponse = await apiClient.get(mission._links.hospital.href);
+        setSelectedHospital(hospitalResponse.data);
+
+
+
+        // Work with driverResponse.data directly for positions
+        const position = positions.find((pos) => pos.id === driverResponse.data?.id);
+        if (position) {
+          console.log("kat")
+          setPosition(position);
+        }
+
+        // Logs for debugging
+        console.log(driverResponse.data);
+        console.log(hospitalResponse.data);
+
+        setSelectedMission(mission);
+      } catch (error) {
+        console.log(error.message);
+      }
+    } else {
+      setSelectedMission(null);
+    }
+  };
+
+
+
+  const directionsCallback = useCallback((
+    result: google.maps.DirectionsResult | null,
+    status: google.maps.DirectionsStatus
+  ) => {
+    if (status === 'OK') {
+      setDirections(result);
+    }
+  }, []);
+
+
+
+  const renderSelectedMission = useMemo(() => {
+    if (!selectedMission) return null;
+
+    return (
+      <>
+        {selectedMission.status === MissionStatus.PICKUP && (
+          <>
+            <Marker
+              icon={{ url: "/ambulance.png" }}
               position={{
-                lat: MissionPosition.lat,
-                lng: MissionPosition.long,
-              }} 
+                lat: Number(position.latitude),
+                lng: Number(position.longitude)
+              }}
+            />
+            <Marker
+              position={{
+                lat: selectedMission.latitude,
+                lng: selectedMission.longitude
+              }}
+            />
+            <DirectionsService
+              options={{
+                destination: {
+                  lat: Number(position.latitude),
+                  lng: Number(position.longitude)
+                },
+                origin: {
+                  lat: selectedMission.latitude,
+                  lng: selectedMission.longitude
+                },
+                travelMode: google.maps.TravelMode.DRIVING
+              }}
+              callback={directionsCallback}
+            />
+          </>
+        )}
+        {selectedMission.status === MissionStatus.ONROUTETOHOSPITAL && (
+          <>
+            <Marker
+              icon={{ url: "/ambulance.png" }}
+              position={{
+                lat: Number(position.latitude),
+                lng: Number(position.longitude)
+              }}
+            />
+            <Marker
+              icon={{ url: "/hospital.png" }}
+              position={{
+                lat: Number(SelectedHospital?.latitude),
+                lng: Number(SelectedHospital?.longitude)
+              }}
+            />
+            <DirectionsService
+              options={{
+                destination: {
+                  lat: Number(position.latitude),
+                  lng: Number(position.longitude)
+                },
+                origin: {
+                  lat: Number(SelectedHospital?.latitude),
+                  lng: Number(SelectedHospital?.longitude)
+                },
+                travelMode: google.maps.TravelMode.DRIVING
+              }}
+              callback={directionsCallback}
+            />
+          </>
+        )}
+      </>
+    );
+  }, [selectedMission, position, SelectedHospital, MissionStatus, directionsCallback]);
+
+
+  const renderDefaultMarkers = useMemo(() => {
+    if (selectedMission) return null;
+
+    return (
+      <>
+        {positions.map((pos, index) => (
+          <Marker
+            key={`position-${index}`}
+            icon={{ url: "/ambulance.png" }}
+            position={{
+              lat: Number(pos.latitude),
+              lng: Number(pos.longitude),
+            }}
+          />
+        ))}
+        {hospitals.map((hospital, index) => (
+          <Marker
+            key={`hospital-${index}`}
+            icon={{ url: "/hospital.png" }}
+            position={{
+              lat: Number(hospital.latitude),
+              lng: Number(hospital.longitude),
+            }}
+          />
+        ))}
+      </>
+    );
+  }, [positions, hospitals, selectedMission]);
+
+
+
+  return (
+    <div className="space-y-6 flex h-[calc(100vh-6rem)]">
+      <div className="flex-grow space-y-6">
+        <h3 className="text-2xl font-medium text-[#6C63FF]">Map</h3>
+        <div className="aspect-video rounded-lg bg-gray-200 flex items-center justify-center">
+          {/* <div className="text-gray-500" style={{width:"100%", height:"100%"}}> */}
+
+          <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_MAPS_KEY!}>
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={MissionPosition || center}
+              zoom={8}
+              onClick={(ev) => { updateMissionPosition(ev) }}
+            >
+              {MissionPosition && <Marker
+                position={{
+                  lat: MissionPosition.lat,
+                  lng: MissionPosition.long,
+                }}
               />}
 
-            {positions.map((position, index) => (
-              <Marker
-                key={index}
 
-                icon={
-                  {
-                    url: "/ambulance.png"
-                  }
-                }
-                position={{
-                  lat: Number(position.latitude),
-                  lng: Number(position.longitude),
-                }}
-              />
-            ))}
-            {hospitals.map((hospital, index) => (
-              <Marker
-                key={index}
+              {selectedMission ? (
+                <>
+                  {renderSelectedMission}
+                </>) :
+                <>
+                  {renderDefaultMarkers}
+                </>}
 
-                icon={
-                  {
-                    url: "/hospital.png"
-                  }
-                }
-                position={{
-                  lat: Number(hospital.latitude),
-                  lng: Number(hospital.longitude),
-                }}
-              />
-            ))}
-            {/* <Marker icon={{
-                  url:'@/public/ambulance.png',
-                  scaledSize: new window.google.maps.Size(50 * 7, 50 * 7),
-                }} position={center} /> */}
-          </GoogleMap>
-        </LoadScript>
+              {directions && (
+                <DirectionsRenderer
+                  options={{
+                    directions,
+                  }}
+                />
+              )}
 
-        {/* </div> */}
-      </div>
-      <div className="flex space-x-4">
-        <Button
-          onClick={() => sendMessage()}
-          className="bg-[#F95738] hover:bg-[#F95738]/90"
-        >
-          Show Hospitals
-        </Button>
-        <Button
-          onClick={() => handleButtonClick("Show Drivers")}
-          className="bg-[#F95738] hover:bg-[#F95738]/90"
-        >
-          Show Drivers
-        </Button>
-        <Button
-          onClick={() => handleButtonClick("Optimize Routes")}
-          className="bg-[#F95738] hover:bg-[#F95738]/90"
-        >
-          Optimize Routes
-        </Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#F95738] hover:bg-[#F95738]/90">Create Mission</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Mission</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              
-              <div>
-                <Label htmlFor="driver">Driver</Label>
-                <Select onValueChange={(value) => handleSelectChange("driver", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a driver" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockDrivers.map((driver) => (
-                      <SelectItem key={driver.id} value={driver.id.toString()}>
-                        {driver.firstName} {driver.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+
+
+            </GoogleMap>
+          </LoadScript>
+
+          {/* </div> */}
+        </div>
+        <div className="flex space-x-4">
+          <Button
+            onClick={() => handleButtonClick("Show Hospitals")}
+            className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
+          >
+            Show Hospitals
+          </Button>
+          <Button
+            onClick={() => handleButtonClick("Show Drivers")}
+            className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
+          >
+            Show Drivers
+          </Button>
+          <Button
+            onClick={() => handleButtonClick("Optimize Routes")}
+            className="bg-[#6C63FF] hover:bg-[#6C63FF]/90"
+          >
+            Optimize Routes
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">Create Mission</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Mission</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+
+                <div>
+                  <Label htmlFor="driver">Driver</Label>
+                  <Select onValueChange={(value) => handleSelectChange("driver", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a driver" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {drivers.map((driver) => (
+                        <SelectItem key={driver.id} value={driver.id.toString()}>
+                          {driver.firstName} {driver.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="hospital">Hospital</Label>
+                  <Select onValueChange={(value) => handleSelectChange("hospital", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a hospital" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {hospitals.map((hospital) => (
+                        <SelectItem key={hospital.id} value={hospital.id.toString()}>
+                          {hospital.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="hospital">Hospital</Label>
-                <Select onValueChange={(value) => handleSelectChange("hospital", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a hospital" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hospitals.map((hospital) => (
-                      <SelectItem key={hospital.id} value={hospital.id.toString()}>
-                        {hospital.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <Button onClick={handleCreateMission} className="bg-[#F95738] hover:bg-[#F95738]/90">
-              Create Mission
-            </Button>
-          </DialogContent>
-        </Dialog>
+              <Button onClick={handleCreateMission} className="bg-[#6C63FF] hover:bg-[#6C63FF]/90">
+                Create Mission
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
+        {selectedOption && (
+          <p className="mt-4 p-4 bg-gray-100 rounded-md">Selected option: {selectedOption}</p>
+        )}
+        {selectedMission && (
+          <div className="mt-4 p-4 bg-gray-100 rounded-md">
+            <h4 className="text-lg font-semibold mb-2">Selected Mission</h4>
+            <p>ID: {selectedMission.id}</p>
+            <p>Status: {selectedMission.status}</p>
+            <p>Address: {selectedMission.address}</p>
+            {/* Add more mission details as needed */}
+          </div>
+        )}
       </div>
-      {selectedOption && (
-        <p className="mt-4 p-4 bg-gray-100 rounded-md">Selected option: {selectedOption}</p>
-      )}
+      <MissionListPanel onMissionSelect={handleMissionSelect} />
     </div>
   )
 }
