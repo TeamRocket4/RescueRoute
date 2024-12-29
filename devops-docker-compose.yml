@@ -29,21 +29,23 @@ services:
       - trivy_cache:/root/.cache/
     command: server --listen 0.0.0.0:8082
 
-  ambulance_db:
-    container_name: ambulance_db
-    image: mysql:8.0
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: rescueroute
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ambulance-network
+ambulance_db:
+  container_name: ambulance_db
+  image: mysql:8.0
+  ports:
+    - "3306:3306"
+  environment:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: rescueroute
+  volumes:
+    - mysql_data:/var/lib/mysql
+  healthcheck:
+    test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+    interval: 10s
+    timeout: 10s
+    retries: 10
+  networks:
+    - ambulance-network
 
   springboot:
     build:
