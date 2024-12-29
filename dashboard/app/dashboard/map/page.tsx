@@ -49,7 +49,7 @@ export default function MapPage() {
   useEffect(() => {
     fetchHospitals();
     fetchDrivers();
-    const socket = new SockJS('http://localhost:8080/position');
+    const socket = new SockJS(`http://${process.env.NEXT_PUBLIC_API_URL}:8080/position`);
     const client = new Client({
       webSocketFactory: () => socket,  // Provide SockJS as the WebSocket factory
     });
@@ -61,7 +61,12 @@ export default function MapPage() {
       client.subscribe('/map/positions', (message) => {
         const receivedMessage: Position = JSON.parse(message.body);
         console.log(receivedMessage)
-        setPositions((prevMessages) => [...prevMessages, receivedMessage]);
+        setPositions((prevMessages) => {
+          if (!prevMessages.some((message) => message.id === receivedMessage.id)) {
+            return [...prevMessages, receivedMessage];
+          }
+          return prevMessages;
+        });
       });
     };
 
@@ -114,8 +119,7 @@ export default function MapPage() {
 
 
   const handleButtonClick = (option: string) => {
-    console.log(position)
-    setSelectedOption(option)
+    console.log(positions)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
