@@ -6,23 +6,31 @@ import com.example.ambulance_spring.dto.RegisterRequest;
 import com.example.ambulance_spring.entities.User;
 import com.example.ambulance_spring.mapper.UserMapper;
 import com.example.ambulance_spring.services.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.Nullable;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Autowired
-    private AuthService authService;
 
-    @Autowired
-    private UserMapper userMapper;
+    private final AuthService authService;
+    private final UserMapper userMapper;
+
+    // Constructor-based injection
+    public AuthController(AuthService authService, UserMapper userMapper) {
+        // Optionally, you can add a null-check here to fail fast
+        if (authService == null) {
+            throw new IllegalArgumentException("AuthService cannot be null.");
+        }
+        if (userMapper == null) {
+            throw new IllegalArgumentException("UserMapper cannot be null.");
+        }
+        this.authService = authService;
+        this.userMapper = userMapper;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterRequest registerRequest) {
@@ -30,7 +38,7 @@ public class AuthController {
             User user = userMapper.toEntity(registerRequest);
 
             boolean res = authService.register(user);
-            if(res){
+            if (res) {
                 return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
             }
             return new ResponseEntity<>("Failed to register user", HttpStatus.BAD_REQUEST);
@@ -39,13 +47,16 @@ public class AuthController {
         }
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-        LoginResponse loginResponse= authService.login(loginRequest);
-        if(loginResponse==null){
+    public ResponseEntity<LoginResponse> login(@Nullable @RequestBody LoginRequest loginRequest) {
+        if (loginRequest == null) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+        LoginResponse loginResponse = authService.login(loginRequest);
+        if (loginResponse == null) {
             return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<>(loginResponse, HttpStatus.OK);
     }
+
 }
