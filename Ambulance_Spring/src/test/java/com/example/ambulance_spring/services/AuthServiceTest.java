@@ -93,7 +93,7 @@ class AuthServiceTest {
         user.setLastName("Doe");
         user.setEmail(email);
         when(userRepository.findByEmail(email)).thenReturn(user);
-        when(jwtUtils.GenerateToken(email)).thenReturn("jwtToken");
+        when(jwtUtils.generateToken(email)).thenReturn("jwtToken");
 
         // Act
         LoginResponse response = authService.login(loginRequest);
@@ -106,7 +106,7 @@ class AuthServiceTest {
         assertEquals("Doe", response.getLastname());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepository).findByEmail(email);
-        verify(jwtUtils).GenerateToken(email);
+        verify(jwtUtils).generateToken(email);
     }
 
 

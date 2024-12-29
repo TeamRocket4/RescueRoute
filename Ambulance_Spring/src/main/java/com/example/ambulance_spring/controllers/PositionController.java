@@ -6,7 +6,6 @@ import com.example.ambulance_spring.entities.Mission;
 import com.example.ambulance_spring.entities.Position;
 import com.example.ambulance_spring.entities.enums.MissionStatus;
 import com.example.ambulance_spring.services.MissionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -16,8 +15,11 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class PositionController {
 
-    @Autowired
-    private MissionService missionService;
+    private final MissionService missionService;
+
+    public PositionController(MissionService missionService) {
+        this.missionService = missionService;
+    }
 
     @MessageMapping("/position")
     @SendTo("/map/positions")
@@ -41,6 +43,4 @@ public class PositionController {
         Mission updatedMission = missionService.updateStatus(Long.parseLong(id), update.getStatus());
         return updatedMission;
     }
-
-
 }
