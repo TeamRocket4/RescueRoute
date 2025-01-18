@@ -1,5 +1,15 @@
 # **RescueRoute Platform**
 ![image-removebg-preview](https://github.com/user-attachments/assets/7fe822f4-2064-4547-b217-24f48ee80f27)
+<iframe 
+  width="560" 
+  height="315" 
+  src="https://www.youtube.com/embed/vphUmE2l6xg?si=dJquY9XksKjUF11K" 
+  title="YouTube video player" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  referrerpolicy="strict-origin-when-cross-origin" 
+  allowfullscreen>
+</iframe>
 
 This article introduces **RescueRoute**, an innovative platform designed to revolutionize emergency medical management. Our solution prioritizes real-time ambulance coordination, optimized routing, and streamlined resource allocation. By incorporating traffic conditions, hospital availability, and real-time constraints, RescueRoute empowers emergency teams to save lives through faster response times and improved collaboration.
 
